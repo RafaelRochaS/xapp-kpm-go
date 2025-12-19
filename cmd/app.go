@@ -6,23 +6,18 @@ import (
 )
 
 type App struct {
-	Stats      map[string]xapp.Counter
-	NBsHandler handlers.NBsHandler
+	NBsHandler      handlers.NBsHandler
+	MessagesHandler handlers.MessagesHandler
 }
 
 func main() {
-	metrics := []xapp.CounterOpts{
-		{
-			Name: "RICIndicationRx",
-			Help: "Total number of RIC Indication message received",
-		},
-	}
 
 	nbsHandler := handlers.NewNBsImpl()
+	messagesHandler := handlers.NewMessagesHandler()
 
 	app := App{
-		Stats:      xapp.Metric.RegisterCounterGroup(metrics, "kpm_app"),
-		NBsHandler: nbsHandler,
+		NBsHandler:      nbsHandler,
+		MessagesHandler: messagesHandler,
 	}
 
 	app.Run()
@@ -52,11 +47,6 @@ func (e *App) xAppStartCB(d interface{}) {
 	}
 }
 
-func (e *App) handleRICIndication(ranName string, r *xapp.RMRParams) {
-	xapp.Logger.Info("handleRICIndication", ranName, "\tparams: ", *r)
-	e.Stats["RICIndicationRx"].Inc()
-}
-
 func (e *App) Consume(msg *xapp.RMRParams) (err error) {
 	id := xapp.Rmr.GetRicMessageName(msg.Mtype)
 
@@ -68,7 +58,11 @@ func (e *App) Consume(msg *xapp.RMRParams) (err error) {
 
 	case "RIC_INDICATION":
 		xapp.Logger.Info("Received RIC Indication message")
-		e.handleRICIndication(msg.Meid.RanName, msg)
+		e.MessagesHandler.HandleRICIndication(msg)
+
+	case "RIC_SUBSCRIPTION_RESPONSE":
+		xapp.Logger.Info("Received RIC Subscription Response message")
+		e.MessagesHandler.HandleSubscriptionResponse(msg)
 
 	default:
 		xapp.Logger.Info("Unknown message type '%d', discarding", msg.Mtype)

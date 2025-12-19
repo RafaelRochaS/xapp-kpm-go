@@ -94,7 +94,6 @@ func (n *NBsImpl) SubscribeToAll() error {
 }
 
 func (n *NBsImpl) sendSubscription(meid string) error {
-
 	xapp.Logger.Info("sending subscription request for meid : %s", meid)
 
 	subscriptionParams := clientmodel.SubscriptionParams{
@@ -105,7 +104,7 @@ func (n *NBsImpl) sendSubscription(meid string) error {
 			{
 				ActionToBeSetupList: clientmodel.ActionsToBeSetup{
 					&clientmodel.ActionToBeSetup{
-						ActionDefinition: clientmodel.ActionDefinition([]int64{1, 2, 3, 4}),
+						ActionDefinition: []int64{1, 2, 3, 4},
 						ActionID:         &actionId,
 						ActionType:       &actionType,
 						SubsequentAction: &clientmodel.SubsequentAction{
@@ -114,7 +113,7 @@ func (n *NBsImpl) sendSubscription(meid string) error {
 						},
 					},
 				},
-				EventTriggers:       clientmodel.EventTriggerDefinition([]int64{1, 2, 3, 4}),
+				EventTriggers:       []int64{1, 2, 3, 4},
 				XappEventInstanceID: &xappEventInstanceID,
 			},
 		}),
@@ -134,7 +133,6 @@ func (n *NBsImpl) sendSubscription(meid string) error {
 	if err != nil {
 		xapp.Logger.Error("subscription failed (%s) with error: %s", meid, err)
 
-		// subscription failed, raise alarm
 		err := xapp.Alarm.Raise(8086, alarm.SeverityCritical, meid, "subscriptionFailed")
 		if err != nil {
 			xapp.Logger.Error("Raising alarm failed with error %v", err)
@@ -142,7 +140,7 @@ func (n *NBsImpl) sendSubscription(meid string) error {
 
 		return err
 	}
-	xapp.Logger.Info("Successfully subcription done (%s), subscription id : %s", meid, *resp.SubscriptionID)
+	xapp.Logger.Info("Subscription successful (%s), subscription id : %s", meid, *resp.SubscriptionID)
 
 	return nil
 }
